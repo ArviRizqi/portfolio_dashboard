@@ -33,7 +33,7 @@ with col1:
     project = st.selectbox(
         "📂 Select Project",
         [
-            "Crop Prediction",
+            "Crop Recommendation",
             "House Price Prediction",
         ]
     )
