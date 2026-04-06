@@ -7,14 +7,9 @@ from shared.utils import section_header, metric_row
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data/kc_house_data.csv")
 
-NUMERIC_COLS = ["price", "sqft_living", "sqft_lot", "sqft_above",
-                "sqft_basement", "sqft_living15", "sqft_lot15",
-                "bedrooms", "bathrooms", "floors", "grade",
-                "condition", "yr_built", "yr_renovated"]
-
 
 # =========================
-# RAW DATA (BEFORE CLEANING)
+# RAW DATA
 # =========================
 @st.cache_data
 def load_data():
@@ -24,22 +19,30 @@ def load_data():
 
 
 # =========================
-# CLEANING PIPELINE
+# CLEANING PIPELINE (SESUAI NOTEBOOK KAMU)
 # =========================
 @st.cache_data
 def clean_data(df):
     df_clean = df.copy()
 
-    # Drop missing penting
-    df_clean = df_clean.dropna(subset=["price", "bedrooms", "bathrooms"])
+    # --- 1. Drop kolom (sesuai pipeline kamu)
+    df_clean = df_clean.drop([
+        "id", "date", "waterfront", "view", "sqft_above",
+        "sqft_basement", "zipcode", "lat", "long",
+        "sqft_living15", "sqft_lot15"
+    ], axis=1)
 
-    # Feature engineering
-    df_clean["price_M"] = df_clean["price"] / 1_000_000
-    df_clean["age"] = df_clean["date"].dt.year - df_clean["yr_built"]
-    df_clean["renovated"] = df_clean["yr_renovated"].apply(lambda x: "Ya" if x > 0 else "Tidak")
-    df_clean["waterfront_label"] = df_clean["waterfront"].apply(lambda x: "Waterfront" if x == 1 else "Non-Waterfront")
+    # --- 2. Handling Missing
+    df_clean.dropna(how="any", inplace=True)
 
-    # Outlier handling (IQR - price)
+    # --- 3. Handling Duplicate
+    df_clean.drop_duplicates(inplace=True)
+
+    # --- 4. Fix anomali bedrooms
+    df_clean["bedrooms"] = df_clean["bedrooms"].replace(11, 1)
+    df_clean["bedrooms"] = df_clean["bedrooms"].replace(33, 3)
+
+    # --- 5. Handling Outlier (IQR - price)
     Q1 = df_clean["price"].quantile(0.25)
     Q3 = df_clean["price"].quantile(0.75)
     IQR = Q3 - Q1
@@ -54,7 +57,7 @@ def clean_data(df):
 
 def render():
     section_header("🏠 House Price Prediction — EDA",
-                   "Eksplorasi distribusi harga, cleaning data, dan faktor penentu properti.")
+                   "Eksplorasi data, cleaning, dan faktor penentu harga rumah.")
 
     df_raw = load_data()
     df = clean_data(df_raw)
@@ -76,7 +79,7 @@ def render():
 
         # BEFORE
         with col1:
-            st.markdown("### 📉 Before Cleaning")
+            st.markdown("### 📉 Before")
             metric_row({
                 "Rows": f"{df_raw.shape[0]:,}",
                 "Missing": int(df_raw.isnull().sum().sum()),
@@ -85,7 +88,7 @@ def render():
 
         # AFTER
         with col2:
-            st.markdown("### ✅ After Cleaning")
+            st.markdown("### ✅ After")
             metric_row({
                 "Rows": f"{df.shape[0]:,}",
                 "Missing": int(df.isnull().sum().sum()),
@@ -94,41 +97,77 @@ def render():
 
         st.markdown("---")
 
-        # Cleaning log (ini bikin kamu terlihat expert)
-        st.markdown("### 📘 Cleaning Summary")
+        # =========================
+        # DETAIL CLEANING
+        # =========================
+        st.markdown("### 📘 Cleaning Process")
+
+        missing_before = int(df_raw.isnull().sum().sum())
+        duplicate_before = int(df_raw.duplicated().sum())
+
+        # estimasi setelah cleaning step by step (untuk storytelling)
+        df_tmp = df_raw.copy()
+        df_tmp = df_tmp.drop([
+            "id", "date", "waterfront", "view", "sqft_above",
+            "sqft_basement", "zipcode", "lat", "long",
+            "sqft_living15", "sqft_lot15"
+        ], axis=1)
+
+        df_tmp2 = df_tmp.dropna(how="any")
+        missing_removed = len(df_tmp) - len(df_tmp2)
+
+        df_tmp3 = df_tmp2.drop_duplicates()
+        duplicate_removed = len(df_tmp2) - len(df_tmp3)
+
+        # Outlier
+        Q1 = df_tmp3["price"].quantile(0.25)
+        Q3 = df_tmp3["price"].quantile(0.75)
+        IQR = Q3 - Q1
+        lower = Q1 - 1.5 * IQR
+        upper = Q3 + 1.5 * IQR
+
+        df_tmp4 = df_tmp3[(df_tmp3["price"] > lower) & (df_tmp3["price"] < upper)]
+        outlier_removed = len(df_tmp3) - len(df_tmp4)
+
         st.markdown(f"""
-        - Missing values pada `price`, `bedrooms`, dan `bathrooms` dihapus  
-        - Outlier pada `price` dihapus menggunakan metode IQR  
-        - Feature engineering:
-          - `age` (umur rumah)
-          - `price_M` (harga dalam juta USD)
-          - `renovated` (status renovasi)
-        - Total data berkurang dari **{len(df_raw):,} → {len(df):,}**
+        **Langkah Cleaning:**
+        - Missing values dihapus → **{missing_removed:,} baris terdampak**
+        - Duplicate dihapus → **{duplicate_removed:,} baris**
+        - Anomali `bedrooms` (11 & 33) diperbaiki
+        - Outlier `price` (IQR) dihapus → **{outlier_removed:,} baris**
+
+        **Total Data:**
+        - Sebelum: **{len(df_raw):,}**
+        - Setelah: **{len(df):,}**
         """)
 
-        # Visual perbandingan
+        # =========================
+        # VISUAL REDUCTION
+        # =========================
         compare_df = pd.DataFrame({
-            "Stage": ["Before", "After"],
-            "Rows": [len(df_raw), len(df)]
+            "Stage": ["Raw", "After Missing", "After Duplicate", "After Outlier"],
+            "Rows": [
+                len(df_raw),
+                len(df_tmp2),
+                len(df_tmp3),
+                len(df_tmp4)
+            ]
         })
 
-        fig = px.bar(compare_df, x="Stage", y="Rows",
-                     title="Perbandingan Jumlah Data",
-                     template="plotly_white",
-                     text="Rows")
+        fig = px.line(compare_df, x="Stage", y="Rows", markers=True,
+                      title="Penurunan Jumlah Data Selama Cleaning",
+                      template="plotly_white")
         st.plotly_chart(fig, use_container_width=True)
-
 
     # =========================
     # TAB 2 — DISTRIBUSI
     # =========================
     with tab2:
         fig = px.histogram(df, x="price", nbins=80,
-                           title="Distribusi Harga Rumah",
+                           title="Distribusi Harga Setelah Cleaning",
                            template="plotly_white")
         fig.update_layout(xaxis_tickformat="$,.0f")
         st.plotly_chart(fig, use_container_width=True)
-
 
     # =========================
     # TAB 3 — KATEGORIKAL
@@ -144,17 +183,15 @@ def render():
         fig.update_layout(yaxis_tickformat="$,.0f")
         st.plotly_chart(fig, use_container_width=True)
 
-
     # =========================
     # TAB 4 — KORELASI
     # =========================
     with tab4:
-        corr_cols = ["price","sqft_living","grade","sqft_above",
-                     "sqft_living15","bathrooms","bedrooms"]
+        corr = df.corr(numeric_only=True)
 
-        corr = df[corr_cols].corr()
-
-        fig = px.imshow(corr, text_auto=True,
+        fig = px.imshow(corr,
+                        text_auto=True,
                         color_continuous_scale="RdBu_r",
-                        title="Korelasi Fitur")
+                        title="Korelasi Antar Fitur",
+                        template="plotly_white")
         st.plotly_chart(fig, use_container_width=True)
