@@ -1,4 +1,14 @@
 import streamlit as st
+import sys
+import os
+import importlib
+
+# ======================
+# PATH FIX — harus paling atas sebelum import apapun dari projects/
+# ======================
+ROOT = os.path.dirname(os.path.abspath(__file__))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
 
 # ======================
 # CONFIG
@@ -15,15 +25,12 @@ st.set_page_config(
 # ======================
 st.markdown("""
 <style>
-    /* Sidebar styling */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
     }
     [data-testid="stSidebar"] * {
         color: #e2e8f0 !important;
     }
-
-    /* Main content */
     .main-header {
         background: linear-gradient(135deg, #1e3a5f 0%, #0f766e 100%);
         padding: 2rem;
@@ -33,8 +40,6 @@ st.markdown("""
     }
     .main-header h1 { margin: 0; font-size: 2rem; }
     .main-header p  { margin: 0.5rem 0 0; opacity: 0.85; }
-
-    /* KPI Cards */
     .kpi-card {
         background: #f8fafc;
         border: 1px solid #e2e8f0;
@@ -42,10 +47,17 @@ st.markdown("""
         padding: 1rem 1.25rem;
         text-align: center;
     }
-    .kpi-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
-    .kpi-value { font-size: 1.75rem; font-weight: 700; color: #0f172a; }
-
-    /* Module badge */
+    .kpi-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .kpi-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
     .breadcrumb {
         background: #f1f5f9;
         border-left: 4px solid #0ea5e9;
@@ -65,7 +77,6 @@ with st.sidebar:
     st.markdown("## 📊 Portfolio")
     st.markdown("---")
 
-    # Project selector
     st.markdown("### 📂 Project")
     project = st.radio(
         "project_select",
@@ -75,7 +86,6 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Module selector
     st.markdown("### 📋 Module")
     module = st.radio(
         "module_select",
@@ -87,15 +97,15 @@ with st.sidebar:
     st.caption("© 2026 | Data Portfolio")
 
 # ======================
-# CLEAN PROJECT / MODULE NAMES
+# CLEAN NAMES (strip emoji prefix)
 # ======================
-project_name = project.split(" ", 1)[1]   # strip emoji
-module_name  = module.split(" ", 1)[1]    # strip emoji
+project_name = project.split(" ", 1)[1]
+module_name  = module.split(" ", 1)[1]
 
 # ======================
 # HEADER
 # ======================
-st.markdown(f"""
+st.markdown("""
 <div class="main-header">
     <h1>📊 Data Portfolio Dashboard</h1>
     <p>Interactive Analytics & Machine Learning Projects</p>
@@ -130,26 +140,34 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ======================
-# PAGE ROUTING
+# ROUTING MAP
 # ======================
-if project_name == "Crop Recommendation":
-    if module_name == "Data Overview":
-        from projects._crop_recomendation.pages.data_overview import render
-    elif module_name == "EDA":
-        from projects._crop_recomendation.pages.eda import render
-    elif module_name == "Model Performance":
-        from projects._crop_recomendation.pages.model_performance import render
-    elif module_name == "Feature Importance":
-        from projects._crop_recomendation.pages.feature_importance import render
+PROJECT_MAP = {
+    "Crop Recommendation":  "projects._crop_recomendation.pages",
+    "House Price Prediction":"projects._house_prediction.pages",
+}
 
-elif project_name == "House Price Prediction":
-    if module_name == "Data Overview":
-        from projects._house_prediction.pages.data_overview import render
-    elif module_name == "EDA":
-        from projects._house_prediction.pages.eda import render
-    elif module_name == "Model Performance":
-        from projects._house_prediction.pages.model_performance import render
-    elif module_name == "Feature Importance":
-        from projects._house_prediction.pages.feature_importance import render
+MODULE_MAP = {
+    "Data Overview":     "data_overview",
+    "EDA":               "eda",
+    "Model Performance": "model_performance",
+    "Feature Importance":"feature_importance",
+}
 
-render()
+# ======================
+# DYNAMIC IMPORT & RENDER
+# ======================
+module_path = f"{PROJECT_MAP[project_name]}.{MODULE_MAP[module_name]}"
+
+try:
+    page = importlib.import_module(module_path)
+    # reload agar perubahan file langsung terdeteksi saat development
+    importlib.reload(page)
+    page.render()
+except ModuleNotFoundError as e:
+    st.error(f"❌ Module tidak ditemukan: `{module_path}`")
+    st.code(str(e))
+    st.info("Pastikan semua folder memiliki file `__init__.py` (boleh kosong).")
+except Exception as e:
+    st.error("❌ Terjadi error saat merender halaman.")
+    st.exception(e)
