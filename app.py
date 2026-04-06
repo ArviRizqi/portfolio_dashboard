@@ -100,22 +100,22 @@ st.markdown("---")
 # ======================
 def render_content(project, module):
 
-    if project == "Crop Prediction":
+    if project == "Crop Recommendation":
 
         if module == "Data Overview":
-            st.subheader("🌾 Crop Prediction - Data Overview")
+            st.subheader("🌾 Crop Recommendation - Data Overview")
             st.info("Overview of dataset, features, and structure.")
 
         elif module == "EDA":
-            st.subheader("📊 Crop Prediction - EDA")
+            st.subheader("📊 Crop Recommendation - EDA")
             st.info("Interactive exploratory data analysis.")
 
         elif module == "Model Performance":
-            st.subheader("🤖 Crop Prediction - Model Performance")
+            st.subheader("🤖 Crop Recommendation - Model Performance")
             st.info("Model comparison and evaluation.")
 
         elif module == "Feature Importance":
-            st.subheader("⭐ Crop Prediction - Feature Importance")
+            st.subheader("⭐ Crop Recommendation - Feature Importance")
             st.info("Key feature contribution analysis.")
 
     elif project == "House Price Prediction":
