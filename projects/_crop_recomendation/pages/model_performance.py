@@ -4,75 +4,126 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import plotly.graph_objects as go
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../"))
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../"))
 from shared.utils import section_header, metric_row
 
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
+from sklearn.metrics import (accuracy_score, precision_score,
+                             recall_score, f1_score, confusion_matrix)
 
-# ── Sample model results (replace with real model evaluation) ──────────────
-MODEL_RESULTS = pd.DataFrame({
-    "Model":     ["Random Forest", "XGBoost", "SVM", "KNN", "Decision Tree", "Naive Bayes"],
-    "Accuracy":  [0.993, 0.987, 0.975, 0.962, 0.904, 0.881],
-    "Precision": [0.991, 0.986, 0.974, 0.960, 0.901, 0.879],
-    "Recall":    [0.993, 0.987, 0.975, 0.961, 0.904, 0.882],
-    "F1 Score":  [0.992, 0.986, 0.974, 0.961, 0.902, 0.880],
-})
+DATA_PATH = os.path.join(os.path.dirname(__file__), "../data/Crop_Recommendation.csv")
+NUMERIC_COLS = ["N", "P", "K", "Temperature", "Humidity", "ph", "Rainfall"]
 
-CONFUSION = np.array([
-    [98,  1,  0,  1],
-    [ 0, 97,  2,  1],
-    [ 1,  1, 96,  2],
-    [ 0,  2,  1, 97],
-])
-CLASSES = ["rice", "maize", "chickpea", "kidney beans"]
+
+@st.cache_data
+def load_data():
+    return pd.read_csv(DATA_PATH)
+
+
+@st.cache_data(show_spinner="🤖 Melatih model... harap tunggu")
+def train_all_models():
+    df = load_data()
+    X = df[NUMERIC_COLS]
+    le = LabelEncoder()
+    y = le.fit_transform(df["label"])
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    models = {
+        "Random Forest":      RandomForestClassifier(n_estimators=100, random_state=42),
+        "Decision Tree":      DecisionTreeClassifier(random_state=42),
+        "KNN":                KNeighborsClassifier(n_neighbors=5),
+        "Naive Bayes":        GaussianNB(),
+        "SVM":                SVC(kernel="rbf", random_state=42),
+        "Gradient Boosting":  GradientBoostingClassifier(n_estimators=100, random_state=42),
+    }
+
+    results = []
+    confusion_matrices = {}
+
+    for name, model in models.items():
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        results.append({
+            "Model":     name,
+            "Accuracy":  accuracy_score(y_test, y_pred),
+            "Precision": precision_score(y_test, y_pred, average="weighted", zero_division=0),
+            "Recall":    recall_score(y_test, y_pred, average="weighted", zero_division=0),
+            "F1 Score":  f1_score(y_test, y_pred, average="weighted", zero_division=0),
+        })
+        confusion_matrices[name] = (confusion_matrix(y_test, y_pred), le.classes_)
+
+    df_results = pd.DataFrame(results).sort_values("Accuracy", ascending=False).reset_index(drop=True)
+    return df_results, confusion_matrices
 
 
 def render():
     section_header("🌾 Crop Recommendation — Model Performance",
-                   "Compare multiple classifiers on accuracy, precision, recall, and F1.")
+                   "Perbandingan 6 model klasifikasi pada data asli (80/20 split).")
 
-    # ── Best model KPIs ────────────────────────────────────────────────
-    best = MODEL_RESULTS.iloc[0]
+    df_results, confusion_matrices = train_all_models()
+
+    best = df_results.iloc[0]
     metric_row({
-        "Best Model":  best["Model"],
-        "Accuracy":    f"{best['Accuracy']*100:.1f}%",
-        "F1 Score":    f"{best['F1 Score']*100:.1f}%",
-        "Models Tested": len(MODEL_RESULTS),
+        "Best Model":    best["Model"],
+        "Accuracy":      f"{best['Accuracy']*100:.2f}%",
+        "F1 Score":      f"{best['F1 Score']*100:.2f}%",
+        "Models Tested": len(df_results),
     })
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    tab1, tab2, tab3 = st.tabs(["🏆 Leaderboard", "📊 Metric Chart", "🔲 Confusion Matrix"])
+    tab1, tab2, tab3 = st.tabs(["🏆 Leaderboard", "📊 Perbandingan Metrik", "🔲 Confusion Matrix"])
 
-    # ── Tab 1 ────────────────────────────────────────────────────────
+    # ── Tab 1 ────────────────────────────────────────────────────────────
     with tab1:
-        styled = MODEL_RESULTS.style \
+        styled = df_results.style \
             .highlight_max(subset=["Accuracy","Precision","Recall","F1 Score"],
                            color="#bbf7d0") \
-            .format({"Accuracy":"{:.3f}","Precision":"{:.3f}",
-                     "Recall":"{:.3f}","F1 Score":"{:.3f}"})
+            .format({"Accuracy":"{:.4f}","Precision":"{:.4f}",
+                     "Recall":"{:.4f}","F1 Score":"{:.4f}"})
         st.dataframe(styled, use_container_width=True, hide_index=True)
 
-    # ── Tab 2 ────────────────────────────────────────────────────────
+    # ── Tab 2 ────────────────────────────────────────────────────────────
     with tab2:
-        metric = st.selectbox("Metric", ["Accuracy","Precision","Recall","F1 Score"])
-        df_sorted = MODEL_RESULTS.sort_values(metric)
+        metric = st.selectbox("Pilih metrik", ["Accuracy","Precision","Recall","F1 Score"])
+        df_sorted = df_results.sort_values(metric)
         fig = px.bar(df_sorted, x=metric, y="Model", orientation="h",
-                     title=f"Model Comparison — {metric}",
+                     title=f"Perbandingan Model — {metric}",
                      template="plotly_white",
                      color=metric, color_continuous_scale="Teal",
-                     text=metric)
-        fig.update_traces(texttemplate="%{text:.3f}", textposition="outside")
-        fig.update_layout(coloraxis_showscale=False, xaxis_range=[0.85, 1.0])
+                     text=df_sorted[metric].apply(lambda x: f"{x:.4f}"))
+        fig.update_traces(textposition="outside")
+        fig.update_layout(coloraxis_showscale=False,
+                          xaxis_range=[df_results[metric].min() - 0.05, 1.01])
         st.plotly_chart(fig, use_container_width=True)
 
-    # ── Tab 3 ────────────────────────────────────────────────────────
+    # ── Tab 3 ────────────────────────────────────────────────────────────
     with tab3:
-        st.caption("Confusion matrix for the best model (Random Forest) — top 4 classes shown.")
-        fig = px.imshow(CONFUSION, x=CLASSES, y=CLASSES,
+        model_name = st.selectbox("Pilih model", df_results["Model"].tolist())
+        cm, classes = confusion_matrices[model_name]
+
+        # Tampilkan hanya 10 kelas pertama agar tidak terlalu padat
+        n = min(10, len(classes))
+        cm_sub = cm[:n, :n]
+        classes_sub = classes[:n]
+
+        fig = px.imshow(cm_sub,
+                        x=classes_sub, y=classes_sub,
                         text_auto=True, aspect="auto",
                         color_continuous_scale="Blues",
-                        title="Confusion Matrix — Random Forest",
-                        labels={"x":"Predicted","y":"Actual"})
+                        title=f"Confusion Matrix — {model_name} (10 kelas pertama)",
+                        labels={"x": "Prediksi", "y": "Aktual"})
+        fig.update_layout(xaxis_tickangle=-40)
         st.plotly_chart(fig, use_container_width=True)
+        st.caption(f"Menampilkan {n} dari {len(classes)} kelas. "
+                   "Diagonal = prediksi benar.")

@@ -2,81 +2,117 @@
 
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
-import plotly.figure_factory as ff
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../"))
+import plotly.graph_objects as go
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../"))
 from shared.utils import section_header
 
+DATA_PATH = os.path.join(os.path.dirname(__file__), "../data/Crop_Recommendation.csv")
 
-def _make_sample_df():
-    np.random.seed(42)
-    n = 2200
-    crops = ["rice","maize","chickpea","kidney beans","pigeonpeas",
-             "mothbeans","mungbean","blackgram","lentil","pomegranate",
-             "banana","mango","grapes","watermelon","muskmelon","apple",
-             "orange","papaya","coconut","cotton","jute","coffee"]
-    return pd.DataFrame({
-        "N":           np.random.randint(0, 140, n),
-        "P":           np.random.randint(5, 145, n),
-        "K":           np.random.randint(5, 205, n),
-        "temperature": np.random.uniform(8.0, 43.0, n).round(2),
-        "humidity":    np.random.uniform(14.0, 99.0, n).round(2),
-        "ph":          np.random.uniform(3.5, 9.9, n).round(2),
-        "rainfall":    np.random.uniform(20.0, 298.0, n).round(2),
-        "label":       np.random.choice(crops, n)
-    })
+NUMERIC_COLS = ["N", "P", "K", "Temperature", "Humidity", "ph", "Rainfall"]
+COLORS = px.colors.qualitative.Set2
+
+
+@st.cache_data
+def load_data():
+    return pd.read_csv(DATA_PATH)
 
 
 def render():
     section_header("🌾 Crop Recommendation — EDA",
-                   "Explore distributions, correlations, and patterns in the dataset.")
+                   "Eksplorasi distribusi, korelasi, dan pola antar fitur.")
 
-    # Replace with actual data load
-    df = _make_sample_df()
-    numeric_cols = [c for c in df.columns if c != "label"]
+    df = load_data()
 
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Distribution", "🔗 Correlation", "🌿 By Crop", "🌧️ Scatter"])
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "📊 Distribusi Fitur",
+        "🔗 Korelasi",
+        "🌿 Rata-rata per Tanaman",
+        "🔵 Scatter Plot",
+    ])
 
-    # ── Tab 1: Distribution ─────────────────────────────────────────────
+    # ── Tab 1: Histogram ─────────────────────────────────────────────────
     with tab1:
-        col = st.selectbox("Select feature", numeric_cols, key="dist_col")
-        fig = px.histogram(df, x=col, color="label", nbins=40,
-                           title=f"Distribution of {col}",
-                           template="plotly_white",
-                           color_discrete_sequence=px.colors.qualitative.Set2)
-        fig.update_layout(showlegend=False)
+        col = st.selectbox("Pilih fitur", NUMERIC_COLS, key="dist_col")
+        show_by_crop = st.checkbox("Pisahkan per tanaman", value=False)
+
+        if show_by_crop:
+            fig = px.histogram(df, x=col, color="label", nbins=40,
+                               template="plotly_white",
+                               title=f"Distribusi {col} per Tanaman",
+                               color_discrete_sequence=COLORS,
+                               barmode="overlay", opacity=0.6)
+            fig.update_layout(showlegend=True)
+        else:
+            fig = px.histogram(df, x=col, nbins=40,
+                               template="plotly_white",
+                               title=f"Distribusi {col}",
+                               color_discrete_sequence=["#0ea5e9"])
         st.plotly_chart(fig, use_container_width=True)
 
-    # ── Tab 2: Correlation heatmap ──────────────────────────────────────
+        # Box plot ringkasan
+        fig2 = px.box(df, x="label", y=col,
+                      title=f"Boxplot {col} per Tanaman",
+                      template="plotly_white",
+                      color="label", color_discrete_sequence=COLORS)
+        fig2.update_layout(showlegend=False, xaxis_tickangle=-40)
+        st.plotly_chart(fig2, use_container_width=True)
+
+    # ── Tab 2: Korelasi ──────────────────────────────────────────────────
     with tab2:
-        corr = df[numeric_cols].corr().round(2)
+        corr = df[NUMERIC_COLS].corr().round(3)
         fig = px.imshow(corr, text_auto=True, aspect="auto",
                         color_continuous_scale="RdBu_r",
-                        title="Feature Correlation Matrix",
+                        zmin=-1, zmax=1,
+                        title="Heatmap Korelasi Antar Fitur",
                         template="plotly_white")
         st.plotly_chart(fig, use_container_width=True)
 
-    # ── Tab 3: Mean values by crop ──────────────────────────────────────
+        # Pair yang paling berkorelasi
+        corr_pairs = (corr.where(
+            ~(corr == 1.0))
+            .stack()
+            .reset_index()
+        )
+        corr_pairs.columns = ["Fitur A", "Fitur B", "Korelasi"]
+        corr_pairs["abs"] = corr_pairs["Korelasi"].abs()
+        corr_pairs = corr_pairs.sort_values("abs", ascending=False).drop_duplicates(subset=["abs"])
+        top5 = corr_pairs.head(5).drop(columns="abs")
+        top5["Korelasi"] = top5["Korelasi"].round(3)
+        st.markdown("**Top 5 pasangan fitur berkorelasi:**")
+        st.dataframe(top5, use_container_width=True, hide_index=True)
+
+    # ── Tab 3: Rata-rata per tanaman ──────────────────────────────────────
     with tab3:
-        feat = st.selectbox("Select feature", numeric_cols, key="crop_feat")
+        feat = st.selectbox("Pilih fitur", NUMERIC_COLS, key="crop_feat")
         grouped = df.groupby("label")[feat].mean().sort_values(ascending=False).reset_index()
-        fig = px.bar(grouped, x="label", y=feat,
-                     title=f"Average {feat} by Crop",
+        grouped.columns = ["Tanaman", "Rata-rata"]
+
+        fig = px.bar(grouped, x="Tanaman", y="Rata-rata",
+                     title=f"Rata-rata {feat} per Tanaman",
                      template="plotly_white",
-                     color=feat, color_continuous_scale="Teal")
-        fig.update_layout(xaxis_tickangle=-40)
+                     color="Rata-rata", color_continuous_scale="Teal",
+                     text="Rata-rata")
+        fig.update_traces(texttemplate="%{text:.1f}", textposition="outside")
+        fig.update_layout(xaxis_tickangle=-40, coloraxis_showscale=False)
         st.plotly_chart(fig, use_container_width=True)
 
     # ── Tab 4: Scatter ──────────────────────────────────────────────────
     with tab4:
         c1, c2 = st.columns(2)
-        x_col = c1.selectbox("X axis", numeric_cols, index=0, key="sx")
-        y_col = c2.selectbox("Y axis", numeric_cols, index=1, key="sy")
-        fig = px.scatter(df, x=x_col, y=y_col, color="label",
+        x_col = c1.selectbox("Sumbu X", NUMERIC_COLS, index=0, key="sx")
+        y_col = c2.selectbox("Sumbu Y", NUMERIC_COLS, index=1, key="sy")
+
+        crops = ["Semua"] + sorted(df["label"].unique().tolist())
+        selected = st.multiselect("Filter tanaman (opsional)", crops[1:],
+                                  default=[], key="scatter_filter")
+
+        plot_df = df[df["label"].isin(selected)] if selected else df
+
+        fig = px.scatter(plot_df, x=x_col, y=y_col, color="label",
                          title=f"{x_col} vs {y_col}",
-                         template="plotly_white", opacity=0.6,
-                         color_discrete_sequence=px.colors.qualitative.Set2)
-        fig.update_layout(showlegend=False)
+                         template="plotly_white", opacity=0.7,
+                         color_discrete_sequence=COLORS,
+                         hover_data=["label"])
         st.plotly_chart(fig, use_container_width=True)
