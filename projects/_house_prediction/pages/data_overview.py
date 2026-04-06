@@ -30,7 +30,6 @@ def render():
     metric_row({
         "Total Transaksi": f"{df.shape[0]:,}",
         "Fitur":           df.shape[1] - 1,
-        "Rata-rata Harga": f"${df['price'].mean():,.0f}",
         "Missing Values":  int(df.isnull().sum().sum()),
     })
 
