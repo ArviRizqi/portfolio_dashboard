@@ -189,9 +189,20 @@ def render():
     with tab4:
         corr = df.corr(numeric_only=True)
 
-        fig = px.imshow(corr,
-                        text_auto=True,
-                        color_continuous_scale="RdBu_r",
-                        title="Korelasi Antar Fitur",
-                        template="plotly_white")
+        fig = px.imshow(
+            corr,
+            text_auto=True,
+            color_continuous_scale="RdBu_r",
+            aspect="auto",  # 🔥 ini kunci utama
+            title="Korelasi Antar Fitur",
+            template="plotly_white"
+        )
+
+        fig.update_layout(
+            height=500,   # lebih pendek
+            width=1000,   # lebih lebar (horizontal)
+        )
+
+        fig.update_xaxes(tickangle=45)  # biar label tidak numpuk
+
         st.plotly_chart(fig, use_container_width=True)
