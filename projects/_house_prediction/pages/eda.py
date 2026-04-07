@@ -62,11 +62,12 @@ def render():
     df_raw = load_data()
     df = clean_data(df_raw)
 
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "🧹 Cleaning Data",
         "📊 Distribusi Harga",
         "🏷️ Faktor Kategorikal",
-        "🔗 Korelasi"
+        "🔗 Korelasi",
+        "Feature Importance"
     ])
 
     # =========================
@@ -206,3 +207,6 @@ def render():
         fig.update_xaxes(tickangle=45)  # biar label tidak numpuk
 
         st.plotly_chart(fig, use_container_width=True)
+    
+    with tab5:
+        st.write("Feature importance coming soon...")

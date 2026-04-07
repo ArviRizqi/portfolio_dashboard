@@ -4,7 +4,7 @@ import os
 import importlib
 
 # ======================
-# PATH FIX — harus paling atas sebelum import apapun dari projects/
+# PATH FIX
 # ======================
 ROOT = os.path.dirname(os.path.abspath(__file__))
 if ROOT not in sys.path:
@@ -89,7 +89,7 @@ with st.sidebar:
     st.markdown("### 📋 Module")
     module = st.radio(
         "module_select",
-        ["📋 Data Overview", "📈 EDA", "🤖 Model Performance", "⭐ Feature Importance"],
+        ["📋 Data Overview", "📈 EDA", "📝 Conclusion", "🤖 Model App"],
         label_visibility="collapsed"
     )
 
@@ -97,7 +97,7 @@ with st.sidebar:
     st.caption("© 2026 | Data Portfolio")
 
 # ======================
-# CLEAN NAMES (strip emoji prefix)
+# CLEAN NAMES
 # ======================
 project_name = project.split(" ", 1)[1]
 module_name  = module.split(" ", 1)[1]
@@ -143,15 +143,15 @@ st.markdown(f"""
 # ROUTING MAP
 # ======================
 PROJECT_MAP = {
-    "Crop Recommendation":  "projects._crop_recomendation.pages",
-    "House Price Prediction":"projects._house_prediction.pages",
+    "Crop Recommendation":   "projects._crop_recomendation.pages",
+    "House Price Prediction": "projects._house_prediction.pages",
 }
 
 MODULE_MAP = {
-    "Data Overview":     "data_overview",
-    "EDA":               "eda",
-    "Model Performance": "model_performance",
-    "Feature Importance":"feature_importance",
+    "Data Overview": "data_overview",
+    "EDA":           "eda",
+    "Conclusion":    "conclusion",
+    "Model App":     "model_app",
 }
 
 # ======================
@@ -161,7 +161,6 @@ module_path = f"{PROJECT_MAP[project_name]}.{MODULE_MAP[module_name]}"
 
 try:
     page = importlib.import_module(module_path)
-    # reload agar perubahan file langsung terdeteksi saat development
     importlib.reload(page)
     page.render()
 except ModuleNotFoundError as e:
