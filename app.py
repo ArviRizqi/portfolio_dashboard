@@ -94,7 +94,12 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.caption("© 2026 | Data Portfolio")
+    st.caption("""
+    <div class= "footer">
+        <p>© 2026 | Data Portfolio</p>
+    </div>
+    """, unsafe_allow_html=True
+    )
 
 # ======================
 # CLEAN NAMES
