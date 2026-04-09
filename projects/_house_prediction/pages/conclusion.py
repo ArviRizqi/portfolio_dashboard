@@ -141,7 +141,7 @@ def render():
     with f1:
         st.markdown("""
         <div style="background:#f0fdf4;border-left:4px solid #16a34a;
-                    padding:1rem;border-radius:0 8px 8px 0">
+                    padding:1rem;border-radius:0 8px 8px 0; color:#000">
             <div style="font-size:1.5rem">🏗️</div>
             <strong>Grade Konstruksi</strong><br>
             <small>Korelasi terkuat. Grade 7→13 bisa menaikkan harga 7×.</small>
@@ -150,7 +150,7 @@ def render():
     with f2:
         st.markdown("""
         <div style="background:#eff6ff;border-left:4px solid #2563eb;
-                    padding:1rem;border-radius:0 8px 8px 0">
+                    padding:1rem;border-radius:0 8px 8px 0; color:#000">
             <div style="font-size:1.5rem">📐</div>
             <strong>Luas Bangunan (sqft_living)</strong><br>
             <small>Korelasi r=0.70. Setiap +1.000 sqft ≈ +$80K–$120K.</small>
@@ -159,7 +159,7 @@ def render():
     with f3:
         st.markdown("""
         <div style="background:#fefce8;border-left:4px solid #ca8a04;
-                    padding:1rem;border-radius:0 8px 8px 0">
+                    padding:1rem;border-radius:0 8px 8px 0; color:#000">
             <div style="font-size:1.5rem">📍</div>
             <strong>Lokasi Geografis (lat/long)</strong><br>
             <small>Area utara KC (Bellevue, Mercer Island) jauh lebih premium.</small>
