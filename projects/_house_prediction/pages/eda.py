@@ -169,7 +169,6 @@ def render():
                          color='grade', trendline='ols',
                          title=f'{feat_label} vs Harga (sample 3.000, warna = grade)',
                          template='plotly_white', opacity=0.55,
-                         color_continuous_scale='Viridis',
                          labels={feat: feat_label, 'price': 'Harga (USD)'})
         fig.update_layout(yaxis_tickformat='$,.0f')
         st.plotly_chart(fig, use_container_width=True)
@@ -178,7 +177,7 @@ def render():
         fig2 = px.box(df, x='grade', y='price',
                       title='Distribusi Harga per Grade Konstruksi',
                       template='plotly_white',
-                      color='grade', color_continuous_scale='Viridis')
+                      color='grade')
         fig2.update_layout(showlegend=False, yaxis_tickformat='$,.0f',
                            xaxis_title='Grade', yaxis_title='Harga (USD)')
         st.plotly_chart(fig2, use_container_width=True)
