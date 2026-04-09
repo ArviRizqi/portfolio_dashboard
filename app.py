@@ -119,7 +119,7 @@ k1, k2, k3, k4 = st.columns(4)
 for col, label, value in zip(
     [k1, k2, k3, k4],
     ["Projects", "Models", "Tech Stack", "Focus"],
-    ["2", "6+", "Python", "Tabular ML"]
+    ["2", "2+", "Python", "Tabular ML"]
 ):
     col.markdown(f"""
     <div class="kpi-card">
