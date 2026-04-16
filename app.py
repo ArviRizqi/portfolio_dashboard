@@ -175,7 +175,7 @@ PROJECTS = {
         "icon":    "🌾",
         "desc":    "Klasifikasi 22 jenis tanaman berdasarkan kondisi tanah & iklim "
                    "menggunakan Random Forest Pipeline.",
-        "tags":    ["Classification", "Random Forest", "22 Classes", "2200 rows"],
+        "tags":    ["Classification", "Random Forest", "22 Classes"],
         "module":  "projects._crop_recomendation.pages",
         "color":   "#0f766e",
     },
@@ -185,7 +185,7 @@ PROJECTS = {
         "icon":    "🏠",
         "desc":    "Prediksi harga rumah King County WA menggunakan Gradient Boosting "
                    "dengan 7 fitur hasil feature engineering.",
-        "tags":    ["Regression", "Gradient Boosting", "King County WA", "21K rows"],
+        "tags":    ["Regression", "Gradient Boosting", "21K rows"],
         "module":  "projects._house_prediction.pages",
         "color":   "#1e3a5f",
     },
