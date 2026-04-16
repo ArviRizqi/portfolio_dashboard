@@ -158,13 +158,8 @@ st.markdown("""
 # ======================
 PROFILE = {
     "name":    "Arvi Rizqi Fadhila",
-    "avatar":  "public/arvi.jpg",  # Bisa ganti dengan emoji atau inisial kalau mau
-    "bio":     """  I'am Arvi - a fresh Informatics graduate from Universitas AMIKOM with a strong focus on
-                    machine learning and computer vision.I'am just train models in notebooks — I architect complete pipelines, from data
-                    preprocessing and model training to deployment via Streamlit and HuggingFace.
-                    My frontend skills (React, Vue, Tailwind) let me build the interfaces that make my
-                    models usable — turning experiments into real products anyone can interact with. 
-                """,
+    "avatar":  "👨‍💻",  # Bisa ganti dengan emoji atau inisial kalau mau
+    "bio":     "I'am Arvi - a fresh Informatics graduate from Universitas AMIKOM with a strong focus on machine learning and computer vision.",
     "github":  "https://www.linkedin.com/in/arvi-rizqi-fadhila",
     "linkedin":"https://github.com/ArviRizqi",
     "skills":  ["Python", "Pandas", "Scikit-learn", "Streamlit", "Plotly", "SQL", "Random Forest", "XGBoost"],
