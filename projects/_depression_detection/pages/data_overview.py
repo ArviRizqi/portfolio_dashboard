@@ -1,106 +1,98 @@
-# config.py
-# ════════════════════════════════════════════════════════════
-#  EDIT FILE INI untuk mengubah profil dan data project
-#  tanpa perlu menyentuh app.py
-# ════════════════════════════════════════════════════════════
+# projects/_depression_detection/pages/data_overview.py
 
+import streamlit as st
+import pandas as pd
+import numpy as np
+import os, sys, warnings
+warnings.filterwarnings("ignore")
 
-# ── PROFIL ───────────────────────────────────────────────────
-PROFILE = {
-    "name":    "John Doe",
-    "avatar":  "👨‍💻",          # emoji atau hapus jika pakai foto
-    # "photo": "assets/photo.jpg",  # uncomment jika pakai foto file
-    "bio":     "Data Analyst & ML Engineer. Passionate about turning data into actionable insights.",
-    "github":  "https://github.com/johndoe",
-    "linkedin":"https://linkedin.com/in/johndoe",
-    "skills":  [
-        "Python", "Pandas", "Scikit-learn",
-        "Streamlit", "Plotly", "SQL",
-        "Random Forest", "XGBoost",
-    ],
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../"))
+from shared.utils import section_header, metric_row, show_dataframe
+
+DATA_PATH = os.path.join(os.path.dirname(__file__), "../data/smmh_augmented__1_.csv")
+
+COL_MAP = {
+    '1. What is your age?': 'age',
+    '2. Gender': 'gender',
+    '3. Relationship Status': 'relationship',
+    '4. Occupation Status': 'occupation',
+    '5. What type of organizations are you affiliated with?': 'affiliate_organization',
+    '6. Do you use social media?': 'use_sosmed',
+    '7. What social media platforms do you commonly use?': 'sosmed_platform',
+    '8. What is the average time you spend on social media every day?': 'avg_time_per_day',
+    '9. How often do you find yourself using Social media without a specific purpose?': 'without_purpose',
+    '10. How often do you get distracted by Social media when you are busy doing something?': 'distracted',
+    "11. Do you feel restless if you haven't used Social media in a while?": 'restless',
+    '12. On a scale of 1 to 5, how easily distracted are you?': 'distracted_ease',
+    '13. On a scale of 1 to 5, how much are you bothered by worries?': 'worries',
+    '14. Do you find it difficult to concentrate on things?': 'concentration',
+    '15. On a scale of 1-5, how often do you compare yourself to other successful people through the use of social media?': 'compare_to_others',
+    '16. Following the previous question, how do you feel about these comparisons, generally speaking?': 'validation',
+    '17. How often do you look to seek validation from features of social media?': 'seek_validation',
+    '18. How often do you feel depressed or down?': 'depressed',
+    '19. On a scale of 1 to 5, how frequently does your interest in daily activities fluctuate?': 'daily_activity_flux',
+    '20. On a scale of 1 to 5, how often do you face issues regarding sleep?': 'sleeping_issues',
 }
 
-
-# ── PROJECTS ─────────────────────────────────────────────────
-# Untuk menambah project baru:
-#   1. Tambah entry baru di dict ini
-#   2. Buat folder projects/_nama_project/pages/ dengan 4 file:
-#      data_overview.py, eda.py, conclusion.py, model_app.py
-#   3. Tidak perlu ubah app.py sama sekali
-# ─────────────────────────────────────────────────────────────
-PROJECTS = {
-    "crop-recommendation": {
-        "label":  "🌾 Crop Recommendation",
-        "title":  "Crop Recommendation",
-        "icon":   "🌾",
-        "desc":   (
-            "Klasifikasi 22 jenis tanaman berdasarkan kondisi tanah & iklim "
-            "menggunakan pipeline Random Forest dengan akurasi ~99%."
-        ),
-        "tags":   ["Classification", "Random Forest", "22 Classes", "2.200 rows"],
-        "module": "projects._crop_recomendation.pages",
-        "color":  "#0f766e",
-        # Detail tambahan untuk halaman project
-        "dataset":   "Crop_Recommendation.csv",
-        "algorithm": "Random Forest Classifier",
-        "accuracy":  "~99%",
-        "task":      "Multi-class Classification",
-    },
-
-    "house-price-prediction": {
-        "label":  "🏠 House Price Prediction",
-        "title":  "House Price Prediction",
-        "icon":   "🏠",
-        "desc":   (
-            "Prediksi harga rumah King County WA menggunakan Gradient Boosting "
-            "dengan 7 fitur hasil feature engineering. R² = 0.90."
-        ),
-        "tags":   ["Regression", "Gradient Boosting", "King County WA", "21K rows"],
-        "module": "projects._house_prediction.pages",
-        "color":  "#1e3a5f",
-        "dataset":   "kc_house_data.csv",
-        "algorithm": "Gradient Boosting Regressor",
-        "accuracy":  "R² = 0.90",
-        "task":      "Regression",
-    },
-
-    "depression-detection": {
-        "label":  "🧠 Depression Detection",
-        "title":  "Depression Detection",
-        "icon":   "🧠",
-        "desc":   (
-            "Deteksi tingkat depresi berdasarkan pola penggunaan media sosial "
-            "menggunakan Multi-Layer Perceptron (MLP/Keras). "
-            "Output: 5 level (Very Low – Very High)."
-        ),
-        "tags":   ["Classification", "Deep Learning", "MLP", "Mental Health", "2K rows"],
-        "module": "projects._depression_detection.pages",
-        "color":  "#4c1d95",
-        "dataset":   "smmh_augmented__1_.csv",
-        "algorithm": "MLP (TensorFlow/Keras)",
-        "accuracy":  "5-class",
-        "task":      "Multi-class Classification",
-    },
-}
+DEPRESSION_LABEL = {1: 'Very Low', 2: 'Low', 3: 'Moderate', 4: 'High', 5: 'Very High'}
 
 
-# ── TABS PER PROJECT ─────────────────────────────────────────
-# Urutan dan ikon tab yang muncul di setiap halaman project.
-# Kunci harus sesuai dengan nama file di folder pages/
-# (tanpa .py), contoh: "data_overview" → data_overview.py
-TABS = {
-    "Data Overview": {"icon": "📋", "file": "data_overview"},
-    "EDA":           {"icon": "📈", "file": "eda"},
-    "Conclusion":    {"icon": "📝", "file": "conclusion"},
-    "Model App":     {"icon": "🤖", "file": "model_app"},
-}
+@st.cache_data
+def load_data():
+    df = pd.read_csv(DATA_PATH)
+    df = df.rename(columns=COL_MAP)
+    df = df.drop(columns=['Timestamp'], errors='ignore')
+    df['depressed_label'] = df['depressed'].map(DEPRESSION_LABEL)
+    return df
 
 
-# ── DASHBOARD META ────────────────────────────────────────────
-DASHBOARD = {
-    "title":    "Data Portfolio Dashboard",
-    "subtitle": "Interactive Analytics & Machine Learning Projects",
-    "icon":     "📊",
-    "footer":   "© 2026 | Data Portfolio",
-    "badges":   ["Python", "Machine Learning", "Tabular Data", "Streamlit"],
-}
+def render():
+    section_header("🧠 Depression Detection — Data Overview",
+                   "Dataset survei penggunaan media sosial dan tingkat depresi (SMMH Augmented, 2.000 responden).")
+
+    df = load_data()
+
+    metric_row({
+        "Total Responden":    f"{len(df):,}",
+        "Fitur Input":        "14",
+        "Level Depresi":      "5 (Very Low – Very High)",
+        "Missing Values":     int(df.isnull().sum().sum()),
+    })
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    tab1, tab2, tab3 = st.tabs(["📄 Sample Data", "📊 Statistik", "📋 Info Kolom"])
+
+    with tab1:
+        show_dataframe(df.drop(columns=['depressed_label']), max_rows=8)
+        st.caption(f"Dataset: `smmh_augmented__1_.csv` — {len(df):,} baris × {df.shape[1]-1} kolom")
+
+    with tab2:
+        st.markdown("**Statistik Deskriptif — Fitur Numerik**")
+        num_cols = ['age', 'without_purpose', 'distracted', 'restless',
+                    'distracted_ease', 'worries', 'concentration',
+                    'compare_to_others', 'validation', 'seek_validation',
+                    'daily_activity_flux', 'sleeping_issues', 'depressed']
+        st.dataframe(df[num_cols].describe().round(2), use_container_width=True)
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Rata-rata Usia",    f"{df['age'].mean():.1f} tahun")
+        c2.metric("Median Depresi",    f"{df['depressed'].median():.0f} / 5")
+        c3.metric("Mayoritas Responden", df['occupation'].value_counts().index[0])
+
+    with tab3:
+        info_df = pd.DataFrame({
+            "Kolom (renamed)": df.columns.drop('depressed_label').tolist(),
+            "Tipe Data":       [str(df[c].dtype) for c in df.columns if c != 'depressed_label'],
+            "Non-Null":        [df[c].notnull().sum() for c in df.columns if c != 'depressed_label'],
+            "Unique Values":   [df[c].nunique() for c in df.columns if c != 'depressed_label'],
+        })
+        st.dataframe(info_df, use_container_width=True, hide_index=True)
+
+        st.markdown("**Distribusi Level Depresi (Target)**")
+        dist = df['depressed'].value_counts().sort_index().reset_index()
+        dist.columns = ['Level', 'Jumlah']
+        dist['Label']       = dist['Level'].map(DEPRESSION_LABEL)
+        dist['Persentase']  = (dist['Jumlah'] / len(df) * 100).round(1).astype(str) + '%'
+        st.dataframe(dist[['Level', 'Label', 'Jumlah', 'Persentase']],
+                     use_container_width=True, hide_index=True)
