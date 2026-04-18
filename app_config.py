@@ -70,14 +70,14 @@ PROJECTS = {
         "icon":   "🧠",
         "desc":   (
             "Deteksi tingkat depresi berdasarkan pola penggunaan media sosial "
-            "menggunakan Multi-Layer Perceptron (MLP/Keras). "
+            "menggunakan algoritma XGBoost Classifier. "
             "Output: 5 level (Very Low – Very High)."
         ),
         "tags":   ["Classification", "Deep Learning", "MLP", "Mental Health", "2K rows"],
         "module": "projects._depression_detection.pages",
         "color":  "#4c1d95",
         "dataset":   "smmh_augmented__1_.csv",
-        "algorithm": "MLP (TensorFlow/Keras)",
+        "algorithm": "XGBoost Classifier",
         "accuracy":  "5-class",
         "task":      "Multi-class Classification",
     },

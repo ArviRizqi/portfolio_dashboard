@@ -19,7 +19,7 @@ BASE       = str(CURRENT_DIR)
 
 def render():
     section_header("🧠 Depression Detection — Conclusion",
-                   "Ringkasan profil SMMH, performa model Neural Network (TensorFlow), "
+                   "Ringkasan profil SMMH, performa model XGBoost, "
                    "dan wawasan psikologis mengenai kecanduan sosial media.")
 
     # ── 1. Wawasan Psikologis Utama ───────────────────────────────────────────
@@ -61,15 +61,12 @@ def render():
     
     st.markdown("""
     Dalam pengaplikasian tingkat klasifikasi yang lebih sensitif seperti diagnosis, 
-    model yang digunakan ditingkatkan dari algoritma Random Forest konvensional ke
-    **Deep Learning (Neural Network)**.
+    model yang digunakan memanfaatkan kekuatan **XGBoost Classifier**.
     
-    **Konfigurasi Model Keras/TensorFlow (`.h5`):**
-    - Multi-layer perceptron (Sequential)
-    - Input preprocessor menggunakan scikit-learn `OneHotEncoder` & `StandardScaler`.
-    - Softmax output layer untuk klasifikasi multikelas (5 Levels).
-    - Terintegrasi langsung dengan API **Google Sheets** menggunakan pustaka `gspread` untuk 
-      memudahkan pelacakan dan audit *real-time* data survei yang di-input secara dinamis di model inference App.
+    **Konfigurasi Model XGBoost (`.pkl`):**
+    - Algoritma Gradient Boosting (XGBoost)
+    - Input preprocessor menggunakan scikit-learn `ColumnTransformer` & Pipeline.
+    - Support untuk klasifikasi multikelas (5 Levels) secara presisi dan efisien.
     """)
 
     st.markdown("---")

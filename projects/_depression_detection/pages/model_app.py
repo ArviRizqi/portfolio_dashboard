@@ -15,7 +15,7 @@ from shared.utils import section_header
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 MODEL_DIR  = CURRENT_DIR.parent / "models"
-MODEL_PATH = str(MODEL_DIR / "depression_model.h5")
+MODEL_PATH = str(MODEL_DIR / "best_model.pkl")
 PREP_PATH  = str(MODEL_DIR / "preprocessor.pkl")
 
 # Emoji per label
@@ -38,9 +38,8 @@ TIME_CHOICES   = ["Beetwen 1 and 2 hour", "Beetwen 2 and 3 hour", "Beetwen 3 and
 @st.cache_resource
 def load_pipeline():
     try:
-        from tensorflow.keras.models import load_model
         import joblib
-        model = load_model(MODEL_PATH)
+        model = joblib.load(MODEL_PATH)
         preprocessor = joblib.load(PREP_PATH)
         return model, preprocessor, None
     except Exception as e:
@@ -55,13 +54,15 @@ def classify_prediction(prob):
 def render():
     section_header("🧠 Depression Detection — Model App",
                    "Isi formulir survei singkat berikut untuk memprediksi tingkat depresi. "
-                   "Aplikasi ini didukung penuh oleh pipeline TensorFlow/Keras.")
+                   "Aplikasi ini didukung penuh oleh algoritma XGBoost Classifier.")
 
     model, preprocessor, error_msg = load_pipeline()
     
     if model is None or preprocessor is None:
         st.warning("""
-        ⚠️ **File model atau preprocessor belum ditemukan atau library missing.**
+        Pastikan struktur model berikut tersedia di `projects/_depression_detection/models/`:
+        - `best_model.pkl`
+        - `preprocessor.pkl`
         
         Sistem tidak dapat memuat model karena pesan error berikut:
         """)
@@ -138,8 +139,8 @@ def render():
                 with st.spinner("Processing Model..."):
                     try:
                         processed = preprocessor.transform(input_data)
-                        probs = model.predict(processed)
-                        pred_index = np.argmax(probs, axis=1)[0]
+                        predictions = model.predict(processed)
+                        pred_index = int(predictions[0])
                         label = classify_prediction(pred_index)
                         
                         # UI Result
