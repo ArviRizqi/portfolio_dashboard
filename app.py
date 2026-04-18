@@ -295,12 +295,22 @@ else:
         with tab:
             module_path = f"{proj['module']}.{tab_cfg['file']}"
             try:
+                # Hapus cache module lama agar reload bersih
+                if module_path in sys.modules:
+                    del sys.modules[module_path]
                 page = importlib.import_module(module_path)
-                importlib.reload(page)
                 page.render()
             except ModuleNotFoundError as e:
+                missing = str(e)
                 st.error(f"❌ Module tidak ditemukan: `{module_path}`")
+                st.code(missing)
+                if "No module named" in missing:
+                    pkg = missing.split("'")[1] if "'" in missing else missing
+                    st.warning(f"💡 Pastikan `{pkg}` ada di `requirements.txt` dan sudah di-deploy ulang.")
+            except ImportError as e:
+                st.error("❌ Import error — kemungkinan library belum terinstall.")
                 st.code(str(e))
+                st.warning("💡 Cek `requirements.txt` dan pastikan semua library sudah ditambahkan.")
             except Exception as e:
-                st.error(f"❌ Error di tab **{tab_name}**")
+                st.error(f"❌ Error di tab **{tab_name}**: {type(e).__name__}")
                 st.exception(e)
