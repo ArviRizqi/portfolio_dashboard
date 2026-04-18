@@ -4,17 +4,9 @@ import os
 import importlib
 
 # ======================
-# PATH FIX
-# ======================
-ROOT = os.path.dirname(os.path.abspath(__file__))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-
-# ======================
 # LOAD CONFIG
 # ======================
-import config as _cfg
-import config as _cfg
+import app_config as _cfg
 
 PROFILE   = _cfg.PROFILE
 PROJECTS  = _cfg.PROJECTS
