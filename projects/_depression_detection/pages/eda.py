@@ -1,5 +1,3 @@
-# projects/_crop_recomendation/pages/eda.py
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -19,191 +17,153 @@ from shared.utils import section_header
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 BASE       = str(CURRENT_DIR)
-DATA_PATH  = os.path.join(BASE, "../data/Crop_Recommendation.csv")
-RF_PATH    = os.path.join(BASE, "../models/rf_model.pkl")
-LE_PATH    = os.path.join(BASE, "../models/label_encoder.pkl")
+DATA_PATH  = os.path.join(BASE, "../data/smmh_augmented__1_.csv")
 
-FEATURES   = ["N", "P", "K", "Temperature", "Humidity", "ph", "Rainfall"]
-COLORS     = px.colors.qualitative.Set2
+COLORS = px.colors.qualitative.Set2
 
+# ── Mapping ──────────────────────────────────────────────────────────────────
+COL_MAP = {
+    '1. What is your age?': 'age',
+    '2. Gender': 'gender',
+    '3. Relationship Status': 'relationship',
+    '4. Occupation Status': 'occupation',
+    '5. What type of organizations are you affiliated with?': 'affiliate_organization',
+    '6. Do you use social media?': 'use_sosmed',
+    '7. What social media platforms do you commonly use?': 'sosmed_platform',
+    '8. What is the average time you spend on social media every day?': 'avg_time_per_day',
+    '9. How often do you find yourself using Social media without a specific purpose?': 'without_purpose',
+    '10. How often do you get distracted by Social media when you are busy doing something?': 'distracted',
+    "11. Do you feel restless if you haven't used Social media in a while?": 'restless',
+    '12. On a scale of 1 to 5, how easily distracted are you?': 'distracted_ease',
+    '13. On a scale of 1 to 5, how much are you bothered by worries?': 'worries',
+    '14. Do you find it difficult to concentrate on things?': 'concentration',
+    '15. On a scale of 1-5, how often do you compare yourself to other successful people through the use of social media?': 'compare_to_others',
+    '16. Following the previous question, how do you feel about these comparisons, generally speaking?': 'validation',
+    '17. How often do you look to seek validation from features of social media?': 'seek_validation',
+    '18. How often do you feel depressed or down?': 'depressed',
+    '19. On a scale of 1 to 5, how frequently does your interest in daily activities fluctuate?': 'daily_activity_flux',
+    '20. On a scale of 1 to 5, how often do you face issues regarding sleep?': 'sleeping_issues',
+}
+
+DEPRESSION_LABEL = {1: 'Very Low', 2: 'Low', 3: 'Moderate', 4: 'High', 5: 'Very High'}
 
 # ── Loaders ──────────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
     df = pd.read_csv(DATA_PATH)
+    df = df.rename(columns=COL_MAP)
+    df = df.drop(columns=['Timestamp'], errors='ignore')
+    df['depressed_label'] = df['depressed'].map(DEPRESSION_LABEL)
     return df
-
-@st.cache_resource
-def load_pipeline():
-    rf = joblib.load(RF_PATH)
-    le = joblib.load(LE_PATH)
-    return rf, le
-
 
 # ── Render ───────────────────────────────────────────────────────────────────
 def render():
-    section_header("🌾 Crop Recommendation — EDA",
-                   "Eksplorasi data, korelasi antar fitur, distribusi per tanaman, "
-                   "dan feature importance dari pipeline Random Forest.")
+    section_header("🧠 Depression Detection — EDA",
+                   "Eksplorasi dataset SMMH: distribusi usia & gender, "
+                   "korelasi indikator psikologis, serta tren penggunaan sosmed.")
 
-    df      = load_data()
-    rf, le  = load_pipeline()
+    df = load_data()
 
-    # Tambah kolom label encoded untuk korelasi
-    df["label_enc"] = le.transform(df["label"])
-
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📊 Distribusi Fitur",
-        "🔗 Korelasi",
-        "🌿 Rata-rata per Tanaman",
-        "🔵 Scatter Plot",
-        "⭐ Feature Importance",
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "👥 Distribusi Demografis",
+        "🔗 Korelasi Psikologis",
+        "📱 Kebiasaan Sosmed",
+        "📊 Perbandingan Depresi"
     ])
 
-    # ── Tab 1: Distribusi ─────────────────────────────────────────────────
+    # ── Tab 1: Demografis ─────────────────────────────────────────────────
     with tab1:
-        col_sel = st.selectbox("Pilih fitur", FEATURES, key="dist_col")
-        show_split = st.checkbox("Pisahkan per tanaman", value=False)
-
-        if show_split:
-            fig = px.histogram(df, x=col_sel, color="label", nbins=40,
+        c1, c2 = st.columns(2)
+        
+        with c1:
+            fig = px.histogram(df, x="age", color="gender", nbins=40,
                                template="plotly_white",
-                               title=f"Distribusi {col_sel} per Tanaman",
-                               color_discrete_sequence=COLORS,
-                               barmode="overlay", opacity=0.55)
-        else:
-            fig = px.histogram(df, x=col_sel, nbins=40,
-                               template="plotly_white",
-                               title=f"Distribusi {col_sel}",
-                               color_discrete_sequence=["#0ea5e9"])
-        st.plotly_chart(fig, use_container_width=True)
+                               title="Distribusi Usia & Gender Responden",
+                               color_discrete_sequence=COLORS)
+            st.plotly_chart(fig, use_container_width=True)
+            
+        with c2:
+            gender_cnt = df['gender'].value_counts().reset_index()
+            gender_cnt.columns = ['Gender', 'Jumlah']
+            fig2 = px.pie(gender_cnt, names="Gender", values="Jumlah",
+                          title="Komposisi Gender", hole=0.4,
+                          color_discrete_sequence=COLORS)
+            st.plotly_chart(fig2, use_container_width=True)
 
-        fig2 = px.box(df, x="label", y=col_sel,
-                      title=f"Boxplot {col_sel} per Tanaman",
-                      template="plotly_white",
-                      color="label",
-                      color_discrete_sequence=COLORS)
-        fig2.update_layout(showlegend=False, xaxis_tickangle=-40,
-                           xaxis_title="", yaxis_title=col_sel)
-        st.plotly_chart(fig2, use_container_width=True)
+        st.info("💡 Mayoritas responden berada di rentang usia remaja dan dewasa muda (18 - 30 tahun), dengan proporsi gender yang cukup representatif di berbagai demografi.")
 
     # ── Tab 2: Korelasi ───────────────────────────────────────────────────
     with tab2:
-        st.markdown("##### Korelasi Antar Fitur Numerik")
-        st.caption("Sesuai dengan pipeline training — menggunakan semua 7 fitur input.")
-
-        corr = df[FEATURES + ["label_enc"]].corr().round(3)
+        st.markdown("##### Heatmap Korelasi Indikator Psikologis vs Tingkat Depresi")
+        
+        # Ambil kolom numerik/skor
+        num_cols = ['without_purpose', 'distracted', 'restless', 'distracted_ease', 
+                    'worries', 'concentration', 'compare_to_others', 'validation', 
+                    'seek_validation', 'daily_activity_flux', 'sleeping_issues', 'depressed']
+                    
+        corr = df[num_cols].corr().round(2)
 
         fig = px.imshow(corr, text_auto=True, aspect="auto",
                         color_continuous_scale="RdBu_r",
                         zmin=-1, zmax=1,
-                        title="Heatmap Korelasi (termasuk Label Encoded)",
+                        title="Matriks Korelasi (Pearson)",
                         template="plotly_white")
-        fig.update_layout(xaxis_tickangle=-30)
+        fig.update_layout(height=600, xaxis_tickangle=-45)
         st.plotly_chart(fig, use_container_width=True)
 
-        # Bar korelasi terhadap label
-        corr_label = corr["label_enc"].drop("label_enc").sort_values()
+        corr_label = corr["depressed"].drop("depressed").sort_values()
         fig2 = px.bar(
             x=corr_label.values,
             y=corr_label.index,
             orientation="h",
-            title="Korelasi Fitur terhadap Label (encoded)",
+            title="Korelasi Setiap Fitur terhadap Level Depresi",
             template="plotly_white",
             color=corr_label.values,
             color_continuous_scale="RdBu_r",
-            text=[f"{v:.3f}" for v in corr_label.values],
-            labels={"x": "Korelasi", "y": "Fitur"},
+            labels={"x": "Korelasi", "y": "Fitur psikologis"},
+            text=[f"{v:.2f}" for v in corr_label.values]
         )
         fig2.update_traces(textposition="outside")
-        fig2.update_layout(coloraxis_showscale=False, xaxis_range=[-0.65, 0.35])
+        fig2.update_layout(coloraxis_showscale=False)
         st.plotly_chart(fig2, use_container_width=True)
 
-        st.info("💡 **P** dan **K** memiliki korelasi negatif terkuat terhadap label, "
-                "artinya nilai P/K yang tinggi cenderung mengarah ke tanaman tertentu "
-                "di urutan awal alfabet (apple, banana, dll).")
-
-    # ── Tab 3: Rata-rata per tanaman ──────────────────────────────────────
+    # ── Tab 3: Kebiasaan Sosmed ──────────────────────────────────────────
     with tab3:
-        feat = st.selectbox("Pilih fitur", FEATURES, key="crop_feat")
-        grouped = (df.groupby("label")[feat]
-                     .mean()
-                     .sort_values(ascending=False)
-                     .reset_index())
-        grouped.columns = ["Tanaman", "Rata-rata"]
-
-        fig = px.bar(grouped, x="Tanaman", y="Rata-rata",
-                     title=f"Rata-rata {feat} per Tanaman",
-                     template="plotly_white",
-                     color="Rata-rata",
-                     color_continuous_scale="Teal",
-                     text=grouped["Rata-rata"].apply(lambda x: f"{x:.1f}"))
-        fig.update_traces(textposition="outside")
-        fig.update_layout(xaxis_tickangle=-40, coloraxis_showscale=False,
-                          xaxis_title="", yaxis_title=f"Rata-rata {feat}")
+        st.markdown("##### Waktu Penggunaan Sosmed per Hari")
+        
+        time_dist = df['avg_time_per_day'].value_counts().reset_index()
+        time_dist.columns = ['Waktu per Hari', 'Frekuensi']
+        
+        fig = px.bar(time_dist, x='Frekuensi', y='Waktu per Hari', orientation='h',
+                     title="Berapa lama mereka bermain Sosmed?", 
+                     color_discrete_sequence=['#0ea5e9'], template="plotly_white")
+        fig.update_layout(yaxis={'categoryorder':'total ascending'})
         st.plotly_chart(fig, use_container_width=True)
+        
+        st.markdown("##### Rata-rata Skor Depresi Berdasarkan Waktu di Sosmed")
+        group_dep = df.groupby('avg_time_per_day')['depressed'].mean().sort_values().reset_index()
+        fig2 = px.bar(group_dep, x='avg_time_per_day', y='depressed',
+                      title="Apakah waktu layar memperburuk depresi?",
+                      color='depressed', color_continuous_scale="Teal",
+                      template="plotly_white",
+                      text=[f"{v:.2f}" for v in group_dep['depressed']])
+        fig2.update_traces(textposition="outside")
+        fig2.update_layout(coloraxis_showscale=False, xaxis_tickangle=-30)
+        st.plotly_chart(fig2, use_container_width=True)
 
-    # ── Tab 4: Scatter ────────────────────────────────────────────────────
+    # ── Tab 4: Perbandingan Status ────────────────────────────────────────
     with tab4:
         c1, c2 = st.columns(2)
-        x_col = c1.selectbox("Sumbu X", FEATURES, index=0, key="sx")
-        y_col = c2.selectbox("Sumbu Y", FEATURES, index=1, key="sy")
-
-        filter_crops = st.multiselect(
-            "Filter tanaman (opsional — kosong = tampilkan semua)",
-            sorted(df["label"].unique().tolist()),
-            default=[], key="scatter_filter"
-        )
-        plot_df = df[df["label"].isin(filter_crops)] if filter_crops else df
-
-        fig = px.scatter(plot_df, x=x_col, y=y_col, color="label",
-                         title=f"{x_col} vs {y_col}",
-                         template="plotly_white",
-                         opacity=0.7,
-                         color_discrete_sequence=COLORS,
-                         hover_data={"label": True, x_col: ":.2f", y_col: ":.2f"})
-        st.plotly_chart(fig, use_container_width=True)
-
-    # ── Tab 5: Feature Importance dari pipeline ───────────────────────────
-    with tab5:
-        st.caption("Diambil langsung dari `rf_model.pkl` — Random Forest 100 trees "
-                   "yang digunakan dalam pipeline prediksi.")
-
-        fi   = rf.feature_importances_
-        std  = np.std([t.feature_importances_ for t in rf.estimators_], axis=0)
-        pct  = fi * 100
-
-        fi_df = pd.DataFrame({
-            "Fitur":      FEATURES,
-            "Importance": fi,
-            "Std":        std,
-            "Persen (%)": pct,
-        }).sort_values("Importance", ascending=True).reset_index(drop=True)
-
-        fig = px.bar(fi_df, x="Importance", y="Fitur",
-                     orientation="h",
-                     error_x="Std",
-                     title="Feature Importance — rf_model.pkl (Pipeline Asli)",
-                     template="plotly_white",
-                     color="Importance",
-                     color_continuous_scale="Teal",
-                     text=fi_df["Persen (%)"].apply(lambda x: f"{x:.1f}%"))
-        fig.update_traces(textposition="outside")
-        fig.update_layout(coloraxis_showscale=False,
-                          xaxis_title="Importance Score (Mean Decrease Impurity)",
-                          yaxis_title="")
-        st.plotly_chart(fig, use_container_width=True)
-
-        # Tabel ringkas
-        tbl = fi_df.sort_values("Importance", ascending=False).copy()
-        tbl.insert(0, "Rank", range(1, len(tbl)+1))
-        tbl["Importance"] = tbl["Importance"].apply(lambda x: f"{x:.4f}")
-        tbl["Std"]        = tbl["Std"].apply(lambda x: f"±{x:.4f}")
-        tbl["Persen (%)"] = tbl["Persen (%)"].apply(lambda x: f"{x:.1f}%")
-        st.dataframe(tbl[["Rank","Fitur","Persen (%)","Importance","Std"]],
-                     use_container_width=True, hide_index=True)
-
-        top = fi_df.iloc[-1]
-        st.info(f"💡 **{top['Fitur']}** adalah fitur paling penting "
-                f"({top['Persen (%)']:.1f}% kontribusi) dalam model pipeline, "
-                "menunjukkan bahwa curah hujan sangat menentukan jenis tanaman yang cocok.")
+        with c1:
+            fig_occ = px.box(df, x="occupation", y="depressed", color="occupation",
+                             title="Tingkat Depresi berdasar Pekerjaan",
+                             template="plotly_white", color_discrete_sequence=COLORS)
+            fig_occ.update_layout(showlegend=False, xaxis_tickangle=-45)
+            st.plotly_chart(fig_occ, use_container_width=True)
+            
+        with c2:
+            fig_rel = px.box(df, x="relationship", y="depressed", color="relationship",
+                             title="Tingkat Depresi berdasar Status Hubungan",
+                             template="plotly_white", color_discrete_sequence=COLORS)
+            fig_rel.update_layout(showlegend=False, xaxis_tickangle=-45)
+            st.plotly_chart(fig_rel, use_container_width=True)

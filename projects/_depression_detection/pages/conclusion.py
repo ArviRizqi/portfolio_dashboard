@@ -1,10 +1,7 @@
-# projects/_crop_recomendation/pages/conclusion.py
-
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import joblib
 import sys, os, warnings
 warnings.filterwarnings("ignore")
 from pathlib import Path
@@ -17,139 +14,86 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from shared.utils import section_header
 
-BASE      = str(CURRENT_DIR)
-DATA_PATH = os.path.join(BASE, "../data/Crop_Recommendation.csv")
-RF_PATH   = os.path.join(BASE, "../models/rf_model.pkl")
-LE_PATH   = os.path.join(BASE, "../models/label_encoder.pkl")
-SC_PATH   = os.path.join(BASE, "../models/scaler.pkl")
-
-FEATURES  = ["N", "P", "K", "Temperature", "Humidity", "ph", "Rainfall"]
-
-
-@st.cache_data
-def load_data():
-    return pd.read_csv(DATA_PATH)
-
-@st.cache_resource
-def load_pipeline():
-    return (
-        joblib.load(RF_PATH),
-        joblib.load(SC_PATH),
-        joblib.load(LE_PATH),
-    )
-
+# ── Paths ────────────────────────────────────────────────────────────────────
+BASE       = str(CURRENT_DIR)
 
 def render():
-    section_header("🌾 Crop Recommendation — Conclusion",
-                   "Ringkasan temuan EDA, performa pipeline, dan rekomendasi penggunaan.")
+    section_header("🧠 Depression Detection — Conclusion",
+                   "Ringkasan profil SMMH, performa model Neural Network (TensorFlow), "
+                   "dan wawasan psikologis mengenai kecanduan sosial media.")
 
-    df          = load_data()
-    rf, sc, le  = load_pipeline()
+    # ── 1. Wawasan Psikologis Utama ───────────────────────────────────────────
+    st.markdown("### 🔍 Wawasan Psikologis")
 
-    # ── 1. Ringkasan Dataset ──────────────────────────────────────────────
-    st.markdown("### 📦 Ringkasan Dataset")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total Sampel",   f"{len(df):,}")
-    c2.metric("Fitur Input",    "7")
-    c3.metric("Jumlah Kelas",   df["label"].nunique())
-    c4.metric("Distribusi",     "Seimbang (100/kelas)")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown("""
+        <div style="background:#fefce8;border-left:4px solid #ca8a04;
+                    padding:1rem;border-radius:0 8px 8px 0; color:#000">
+            <div style="font-size:1.5rem">📉</div>
+            <strong>Kesulitan Konsentrasi & Validasi</strong><br>
+            <small>Fitur `difficult_to_concentrate` dan kebiasaan `seek_validation` memiliki korelasi tertinggi dengan depresi.</small>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown("""
+        <div style="background:#eff6ff;border-left:4px solid #2563eb;
+                    padding:1rem;border-radius:0 8px 8px 0; color:#000">
+            <div style="font-size:1.5rem">📱</div>
+            <strong>Screen Time & Depresi</strong><br>
+            <small>Penggunaan > 5 jam sehari berbanding lurus dengan peningkatan level depresi akut.</small>
+        </div>
+        """, unsafe_allow_html=True)
+    with c3:
+        st.markdown("""
+        <div style="background:#f0fdf4;border-left:4px solid #16a34a;
+                    padding:1rem;border-radius:0 8px 8px 0; color:#000">
+            <div style="font-size:1.5rem">👥</div>
+            <strong>Comparison Culture</strong><br>
+            <small>Pengguna yang intens membandingkan dirinya dengan figur di sosial media menunjukkan kerentanan lebih tinggi (Comparison to others).</small>
+        </div>
+        """, unsafe_allow_html=True)
 
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── 2. Implementasi Model Tensor-Flow ─────────────────────────────────
+    st.markdown("### 🤖 Implementasi & Deployment")
+    
     st.markdown("""
-    Dataset **Crop Recommendation** berisi 2.200 sampel dengan 7 fitur agrikultur
-    (N, P, K, suhu, kelembapan, pH, curah hujan) dan 22 kelas tanaman.
-    Setiap kelas memiliki tepat **100 sampel**, sehingga dataset ini **perfectly balanced**
-    dan tidak memerlukan teknik oversampling/undersampling.
+    Dalam pengaplikasian tingkat klasifikasi yang lebih sensitif seperti diagnosis, 
+    model yang digunakan ditingkatkan dari algoritma Random Forest konvensional ke
+    **Deep Learning (Neural Network)**.
+    
+    **Konfigurasi Model Keras/TensorFlow (`.h5`):**
+    - Multi-layer perceptron (Sequential)
+    - Input preprocessor menggunakan scikit-learn `OneHotEncoder` & `StandardScaler`.
+    - Softmax output layer untuk klasifikasi multikelas (5 Levels).
+    - Terintegrasi langsung dengan API **Google Sheets** menggunakan pustaka `gspread` untuk 
+      memudahkan pelacakan dan audit *real-time* data survei yang di-input secara dinamis di model inference App.
     """)
 
     st.markdown("---")
 
-    # ── 2. Temuan EDA ─────────────────────────────────────────────────────
-    st.markdown("### 🔍 Temuan Utama EDA")
+    # ── 3. Batasan dan Rekomendasi ──────────────────────────────────────────
+    st.markdown("### 💡 Rekomendasi & Etika Penggunaan")
 
-    col_left, col_right = st.columns(2)
-
-    with col_left:
-        st.markdown("**Korelasi terhadap Label**")
-        df2 = df.copy()
-        df2["label_enc"] = le.transform(df2["label"])
-        corr_label = df2[FEATURES + ["label_enc"]].corr()["label_enc"].drop("label_enc").sort_values()
-        fig = px.bar(x=corr_label.values, y=corr_label.index, orientation="h",
-                     template="plotly_white",
-                     color=corr_label.values,
-                     color_continuous_scale="RdBu_r",
-                     text=[f"{v:.3f}" for v in corr_label.values],
-                     title="Korelasi Fitur → Label")
-        fig.update_traces(textposition="outside")
-        fig.update_layout(coloraxis_showscale=False, height=320,
-                          margin=dict(t=40,b=10,l=10,r=10))
-        st.plotly_chart(fig, use_container_width=True)
-
-    with col_right:
-        st.markdown("**Feature Importance (Pipeline RF)**")
-        fi  = rf.feature_importances_
-        fi_df = pd.DataFrame({"Fitur": FEATURES, "Importance": fi}) \
-                  .sort_values("Importance", ascending=True)
-        fig2 = px.bar(fi_df, x="Importance", y="Fitur", orientation="h",
-                      template="plotly_white",
-                      color="Importance", color_continuous_scale="Teal",
-                      text=fi_df["Importance"].apply(lambda x: f"{x:.3f}"),
-                      title="Feature Importance (rf_model.pkl)")
-        fig2.update_traces(textposition="outside")
-        fig2.update_layout(coloraxis_showscale=False, height=320,
-                           margin=dict(t=40,b=10,l=10,r=10))
-        st.plotly_chart(fig2, use_container_width=True)
-
-    st.markdown("""
-    | Temuan | Detail |
-    |--------|--------|
-    | 🌧️ **Rainfall** paling berpengaruh | Importance 22.7% — curah hujan sangat menentukan jenis tanaman |
-    | 💧 **Humidity** posisi kedua | Importance 21.1% — kelembapan udara sangat krusial |
-    | 🧪 **K (Kalium)** faktor mineral utama | Importance 18.1% — mengungguli N dan P |
-    | ⚗️ **ph** terendah | Importance hanya 5.2% — keasaman tanah relatif tidak dominan |
-    | 📉 **P berkorelasi negatif kuat** | Korelasi -0.491 terhadap label — P tinggi → tanaman tertentu |
-    """)
-
-    st.markdown("---")
-
-    # ── 3. Performa Model ─────────────────────────────────────────────────
-    st.markdown("### 🤖 Performa Pipeline")
-
-    st.markdown("""
-    Pipeline menggunakan **Random Forest Classifier** dengan konfigurasi:
-    - `n_estimators = 100`, `random_state = 42`
-    - Preprocessing: **StandardScaler** → **LabelEncoder**
-    - Split data: **80% train / 20% test**
-
-    Berdasarkan notebook pelatihan, performa model pada test set:
-    """)
-
-    perf_df = pd.DataFrame({
-        "Model":     ["Random Forest", "XGBoost", "MLP (Deep Learning)"],
-        "Accuracy":  ["~99%", "~98%", "~98%"],
-        "Keterangan":["✅ Digunakan di pipeline", "Alternatif", "Alternatif (lebih berat)"],
-    })
-    st.dataframe(perf_df, use_container_width=True, hide_index=True)
-
-    st.markdown("---")
-
-    # ── 4. Rekomendasi Penggunaan ─────────────────────────────────────────
-    st.markdown("### 💡 Rekomendasi Penggunaan")
-
-    st.success("""
-    **Random Forest dipilih sebagai model produksi** karena:
-    - Akurasi tertinggi (~99%) dibanding XGBoost dan MLP
-    - Tidak memerlukan tuning ekstensif
-    - Interpretable melalui feature importance
-    - Cepat saat inference (tidak perlu GPU)
+    st.warning("""
+    **Catatan Skrining Klinis (Ethical Disclaimer):**
+    Prediksi sistem yang dikeluarkan bersifat eksperimental (estimasi algoritma klasifikasi) dan hanya meninjau
+    kebiasaan penggunaan media sosial berdasar Dataset *SMMH Augmented*.
+    
+    Prediksi komputer dari form tersebut **tidak dapat dan tidak boleh** digunakan untuk menggantikan diagnosis 
+    psikologis profesional atau tenaga medis yang berizin.
     """)
 
     st.info("""
-    **Saran pengembangan ke depan:**
-    - Tambah fitur lokasi geografis (latitude/longitude) untuk konteks regional
-    - Validasi model dengan data lapangan nyata dari petani
-    - Pertimbangkan model ensemble (stacking RF + XGBoost) untuk edge case
-    - Tambahkan rekomendasi pupuk berdasarkan nilai N, P, K yang diinput
+    **Saran Pengembangan ke Depan:**
+    - Penambahan dimensi variabel seperti faktor ekternal lingkungan, latar belakang biologis keturunan.
+    - Menurunkan model secara granular menjadi binary classification `[Depresi Klinis vs Ringan]` 
+      dengan _threshold/confidence score_ yang bisa diatur untuk menekan angka *False Positives*.
+    - Melakukan validasi eksternal terhadap responden non-berbahasa inggris untuk meminimalisasi cultural-bias 
+      dalam kuesioner awal.
     """)
 
     st.markdown("---")
-    st.caption("Model: `rf_model.pkl` | Scaler: `scaler.pkl` | Encoder: `label_encoder.pkl`")
+    st.caption("Deployment Artifacts: `depression_model.h5` | Pipeline: `preprocessor.pkl` | Dataset: SMMH")
