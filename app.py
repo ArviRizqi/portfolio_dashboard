@@ -13,7 +13,12 @@ if ROOT not in sys.path:
 # ======================
 # LOAD CONFIG
 # ======================
-from config import PROFILE, PROJECTS, TABS, DASHBOARD
+import config as _cfg
+importlib.reload(_cfg)
+PROFILE   = _cfg.PROFILE
+PROJECTS  = _cfg.PROJECTS
+TABS      = _cfg.TABS
+DASHBOARD = _cfg.DASHBOARD
 
 # ======================
 # PAGE CONFIG
