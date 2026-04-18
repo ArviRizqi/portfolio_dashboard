@@ -39,6 +39,14 @@ TIME_CHOICES   = ["Beetwen 1 and 2 hour", "Beetwen 2 and 3 hour", "Beetwen 3 and
 def load_pipeline():
     try:
         import joblib
+        import sklearn.compose._column_transformer
+        
+        # Patch for older scikit-learn pickling compatibility
+        if not hasattr(sklearn.compose._column_transformer, '_RemainderColsList'):
+            class _RemainderColsList(list):
+                pass
+            sklearn.compose._column_transformer._RemainderColsList = _RemainderColsList
+
         model = joblib.load(MODEL_PATH)
         preprocessor = joblib.load(PREP_PATH)
         return model, preprocessor, None
