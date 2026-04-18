@@ -14,7 +14,8 @@ if ROOT not in sys.path:
 # LOAD CONFIG
 # ======================
 import config as _cfg
-importlib.reload(_cfg)
+import config as _cfg
+
 PROFILE   = _cfg.PROFILE
 PROJECTS  = _cfg.PROJECTS
 TABS      = _cfg.TABS
