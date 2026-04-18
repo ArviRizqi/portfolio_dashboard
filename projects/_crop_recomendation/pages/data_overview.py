@@ -2,11 +2,19 @@
 
 import streamlit as st
 import pandas as pd
-import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../"))
+import sys
+from pathlib import Path
+
+# Resolve path
+CURRENT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = CURRENT_DIR.parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+import os
 from shared.utils import section_header, metric_row, show_dataframe
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "../data/Crop_Recommendation.csv")
+DATA_PATH = str(CURRENT_DIR.parent / "data" / "Crop_Recommendation.csv")
 
 
 @st.cache_data

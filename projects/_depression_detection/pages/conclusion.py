@@ -5,13 +5,19 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import joblib
-import os, sys, warnings
+import sys, os, warnings
 warnings.filterwarnings("ignore")
+from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../"))
+# Resolve path
+CURRENT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = CURRENT_DIR.parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from shared.utils import section_header
 
-BASE      = os.path.dirname(__file__)
+BASE      = str(CURRENT_DIR)
 DATA_PATH = os.path.join(BASE, "../data/Crop_Recommendation.csv")
 RF_PATH   = os.path.join(BASE, "../models/rf_model.pkl")
 LE_PATH   = os.path.join(BASE, "../models/label_encoder.pkl")

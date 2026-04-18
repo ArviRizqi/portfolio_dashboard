@@ -3,13 +3,19 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import os, sys, warnings
+import sys, os, warnings
 warnings.filterwarnings("ignore")
+from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../"))
+# Resolve path
+CURRENT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = CURRENT_DIR.parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from shared.utils import section_header
 
-BASE     = os.path.dirname(__file__)
+BASE     = str(CURRENT_DIR)
 GB_PATH  = os.path.join(BASE, "../models/gb_model.pkl")
 SC_PATH  = os.path.join(BASE, "../models/scaler_house.pkl")
 
