@@ -16,7 +16,7 @@ def load_data():
 
 def render():
     section_header("🌾 Crop Recommendation — Data Overview",
-                   "Struktur dataset, tipe fitur, dan statistik dasar.")
+                   "Menampilkan struktur data, tipe-tipe fitur, serta statistik dasar pada bagian berikutnya.")
 
     df = load_data()
 
