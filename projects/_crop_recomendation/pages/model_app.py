@@ -16,10 +16,10 @@ if str(PROJECT_ROOT) not in sys.path:
 from shared.utils import section_header
 
 # ── Paths ────────────────────────────────────────────────────────────────────
-BASE      = str(CURRENT_DIR)
-RF_PATH   = os.path.join(BASE, "../models/rf_model.pkl")
-SC_PATH   = os.path.join(BASE, "../models/scaler.pkl")
-LE_PATH   = os.path.join(BASE, "../models/label_encoder.pkl")
+MODEL_DIR = CURRENT_DIR.parent / "models"
+RF_PATH   = str(MODEL_DIR / "rf_model.pkl")
+SC_PATH   = str(MODEL_DIR / "scaler.pkl")
+LE_PATH   = str(MODEL_DIR / "label_encoder.pkl")
 
 FEATURES  = ["N", "P", "K", "Temperature", "Humidity", "ph", "Rainfall"]
 

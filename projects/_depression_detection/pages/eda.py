@@ -16,8 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from shared.utils import section_header
 
 # ── Paths ────────────────────────────────────────────────────────────────────
-BASE       = str(CURRENT_DIR)
-DATA_PATH  = os.path.join(BASE, "../data/smmh_augmented__1_.csv")
+DATA_PATH  = str(CURRENT_DIR.parent / "data" / "smmh_augmented.csv")
 
 COLORS = px.colors.qualitative.Set2
 

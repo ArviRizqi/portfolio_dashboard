@@ -16,8 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from shared.utils import section_header
 
-BASE      = str(CURRENT_DIR)
-DATA_PATH = os.path.join(BASE, "../data/kc_house_data.csv")
+DATA_PATH = str(CURRENT_DIR.parent / "data" / "kc_house_data.csv")
 
 
 @st.cache_data

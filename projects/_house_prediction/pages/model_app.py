@@ -15,9 +15,9 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from shared.utils import section_header
 
-BASE     = str(CURRENT_DIR)
-GB_PATH  = os.path.join(BASE, "../models/gb_model.pkl")
-SC_PATH  = os.path.join(BASE, "../models/scaler_house.pkl")
+MODEL_DIR = CURRENT_DIR.parent / "models"
+GB_PATH   = str(MODEL_DIR / "gb_model.pkl")
+SC_PATH   = str(MODEL_DIR / "scaler_house.pkl")
 
 # Fitur yang digunakan pipeline (urutan harus sama persis saat training)
 FEATURE_COLS = [

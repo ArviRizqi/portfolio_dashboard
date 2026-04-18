@@ -14,10 +14,10 @@ if str(PROJECT_ROOT) not in sys.path:
 from shared.utils import section_header
 
 # ── Paths ────────────────────────────────────────────────────────────────────
-BASE      = str(CURRENT_DIR)
-MODEL_PATH = os.path.join(BASE, "../models/depression_model.h5")
-PREP_PATH  = os.path.join(BASE, "../models/preprocessor.pkl")
-CRED_PATH  = os.path.join(BASE, "../models/rapid-stream-429607-p8-cf3cc03419bd.json")
+MODEL_DIR  = CURRENT_DIR.parent / "models"
+MODEL_PATH = str(MODEL_DIR / "depression_model.h5")
+PREP_PATH  = str(MODEL_DIR / "preprocessor.pkl")
+CRED_PATH  = str(MODEL_DIR / "rapid-stream-429607-p8-cf3cc03419bd.json")
 
 # Emoji per label
 DEPRESSION_EMOJI = {

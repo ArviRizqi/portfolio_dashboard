@@ -15,7 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from shared.utils import section_header, metric_row, show_dataframe
 
-DATA_PATH = str(CURRENT_DIR.parent / "data" / "smmh_augmented__1_.csv")
+DATA_PATH = str(CURRENT_DIR.parent / "data" / "smmh_augmented.csv")
 
 COL_MAP = {
     '1. What is your age?': 'age',
