@@ -17,7 +17,6 @@ from shared.utils import section_header
 MODEL_DIR  = CURRENT_DIR.parent / "models"
 MODEL_PATH = str(MODEL_DIR / "depression_model.h5")
 PREP_PATH  = str(MODEL_DIR / "preprocessor.pkl")
-CRED_PATH  = str(MODEL_DIR / "rapid-stream-429607-p8-cf3cc03419bd.json")
 
 # Emoji per label
 DEPRESSION_EMOJI = {
@@ -43,25 +42,12 @@ def load_pipeline():
         import joblib
         model = load_model(MODEL_PATH)
         preprocessor = joblib.load(PREP_PATH)
-        return model, preprocessor
+        return model, preprocessor, None
     except Exception as e:
-        return None, None
+        import traceback
+        return None, None, traceback.format_exc()
 
-def get_gspread_worksheet():
-    try:
-        import gspread
-        from oauth2client.service_account import ServiceAccountCredentials
-        if not os.path.exists(CRED_PATH):
-            return None
-        scope = [
-            "https://spreadsheets.google.com/feeds",
-            "https://www.googleapis.com/auth/drive"
-        ]
-        creds = ServiceAccountCredentials.from_json_keyfile_name(CRED_PATH, scope)
-        client = gspread.authorize(creds)
-        return client.open("Depressed").sheet1
-    except Exception as e:
-        return None
+
 
 def classify_prediction(prob):
     return ["Very Low", "Low", "Moderate", "High", "Very High"][prob]
@@ -69,26 +55,22 @@ def classify_prediction(prob):
 def render():
     section_header("🧠 Depression Detection — Model App",
                    "Isi formulir survei singkat berikut untuk memprediksi tingkat depresi. "
-                   "Aplikasi ini menggunakan TensorFlow/Keras dan menyimpan logging secara otomatis ke Sheets.")
+                   "Aplikasi ini didukung penuh oleh pipeline TensorFlow/Keras.")
 
-    model, preprocessor = load_pipeline()
+    model, preprocessor, error_msg = load_pipeline()
     
     if model is None or preprocessor is None:
         st.warning("""
         ⚠️ **File model atau preprocessor belum ditemukan atau library missing.**
         
-        Pastikan struktur model berikut tersedia di `projects/_depression_detection/models/`:
-        - `depression_model.h5`
-        - `preprocessor.pkl`
-        
-        Serta pastikan `tensorflow` terinstall di backend.
+        Sistem tidak dapat memuat model karena pesan error berikut:
         """)
-        st.info("💡 Preview form di bawah ini. Hasil prediksi aktif saat model berhasil di-load.")
+        st.code(error_msg, language="bash")
+        
+        st.info("💡 Pastikan `tensorflow` terinstall di backend environment Anda. Preview form di bawah ini. Hasil prediksi aktif saat model berhasil di-load.")
         st.markdown("---")
 
-    ws = get_gspread_worksheet()
-    if ws is None:
-        st.caption("ℹ️ *Fitur sinkronisasi ke Google Sheets saat ini dinonaktifkan (credentials JSON tidak ditemukan atau gagal autentikasi).*")
+
 
     st.markdown("#### 📋 Formulir Survei Sosial Media")
     
@@ -160,23 +142,6 @@ def render():
                         pred_index = np.argmax(probs, axis=1)[0]
                         label = classify_prediction(pred_index)
                         
-                        # Logging to Google Sheets
-                        if ws is not None:
-                            try:
-                                row_data = [
-                                    name, age, gender, relationship, occupation,
-                                    ", ".join(affiliate) if affiliate else "None",
-                                    ", ".join(sosmed) if sosmed else "None", avg_time,
-                                    without_purpose, distracted, restless,
-                                    distracted_ease, worries, concentration,
-                                    compare, validation,
-                                    activity_flux, sleeping,
-                                    int(pred_index + 1), label
-                                ]
-                                ws.append_row(row_data)
-                            except Exception as e_sheet:
-                                st.warning(f"Berhasil diprediksi namun sinkronisasi database gagal: {e_sheet}")
-
                         # UI Result
                         st.markdown("---")
                         emoji = DEPRESSION_EMOJI.get(label, "🧠")
