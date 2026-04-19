@@ -71,12 +71,11 @@ st.markdown("""
 }
 .project-nav-label {
     font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.08em; color: #64748b !important;
-    margin: 0.75rem 0 0.4rem; padding: 0 0.25rem;
+    margin: 0.4rem; padding: 0 0.25rem;
 }
 [data-testid="stSidebar"] .stButton > button {
     width: 100%; background: transparent; border: 1px solid transparent;
-    border-radius: 8px; padding: 0.5rem 0.75rem; text-align: left;
+    border-radius: 8px; padding: 0.5rem ; text-align: left;
     color: #cbd5e1 !important; font-size: 0.85rem; transition: all 0.15s;
 }
 [data-testid="stSidebar"] .stButton > button:hover {
