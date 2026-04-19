@@ -71,7 +71,7 @@ st.markdown("""
 }
 .project-nav-label {
     font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
-    margin: 0.4rem; padding: 0 0.25rem;
+    margin: 0.2rem; padding: 0.25rem;
 }
 [data-testid="stSidebar"] .stButton > button {
     width: 100%; background: transparent; border: 1px solid transparent;
@@ -79,7 +79,7 @@ st.markdown("""
     color: #cbd5e1 !important; font-size: 0.85rem; transition: all 0.15s;
 }
 [data-testid="stSidebar"] .stButton > button:hover {
-    background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1);
 }
 
 /* ── Main area ── */
