@@ -70,14 +70,12 @@ st.markdown("""
     font-size: 0.65rem; color: #7dd3fc !important;
 }
 .project-nav-label {
-    width: 100%; background: transparent; border: 1px solid transparent;
-    border-radius: 8px; padding: 0.5rem ; text-align: left;
-    color: #cbd5e1 !important; font-size: 0.85rem; transition: all 0.15s;
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+    margin: 0.1rem; padding: 0.1rem;
 }
 [data-testid="stSidebar"] .stButton > button {
-    width: 100%; background: transparent; border: 1px solid transparent;
-    border-radius: 8px; padding: 0.5rem ; text-align: left;
-    color: #cbd5e1 !important; font-size: 0.85rem; transition: all 0.15s;
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+    margin: 0.1rem; padding: 0.1rem;
 }
 [data-testid="stSidebar"] .stButton > button:hover {
     background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1);
