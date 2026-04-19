@@ -70,8 +70,9 @@ st.markdown("""
     font-size: 0.65rem; color: #7dd3fc !important;
 }
 .project-nav-label {
-    font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
-    margin: 0.1rem; padding: 0.1rem;
+    width: 100%; background: transparent; border: 1px solid transparent;
+    border-radius: 8px; padding: 0.5rem ; text-align: left;
+    color: #cbd5e1 !important; font-size: 0.85rem; transition: all 0.15s;
 }
 [data-testid="stSidebar"] .stButton > button {
     width: 100%; background: transparent; border: 1px solid transparent;
