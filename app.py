@@ -71,7 +71,7 @@ st.markdown("""
 }
 .project-nav-label {
     font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
-    margin: 0.2rem; padding: 0.25rem;
+    margin: 0.1rem; padding: 0.1rem;
 }
 [data-testid="stSidebar"] .stButton > button {
     width: 100%; background: transparent; border: 1px solid transparent;
