@@ -1,4 +1,4 @@
-# app_config.py
+# config.py
 # ════════════════════════════════════════════════════════════
 #  EDIT FILE INI untuk mengubah profil dan data project
 #  tanpa perlu menyentuh app.py
@@ -70,14 +70,14 @@ PROJECTS = {
         "icon":   "🧠",
         "desc":   (
             "Deteksi tingkat depresi berdasarkan pola penggunaan media sosial "
-            "menggunakan algoritma XGBoost Classifier. "
+            "menggunakan Multi-Layer Perceptron (MLP/Keras). "
             "Output: 5 level (Very Low – Very High)."
         ),
         "tags":   ["Classification", "Deep Learning", "MLP", "Mental Health", "2K rows"],
         "module": "projects._depression_detection.pages",
         "color":  "#4c1d95",
         "dataset":   "smmh_augmented__1_.csv",
-        "algorithm": "XGBoost Classifier",
+        "algorithm": "MLP (TensorFlow/Keras)",
         "accuracy":  "5-class",
         "task":      "Multi-class Classification",
     },
