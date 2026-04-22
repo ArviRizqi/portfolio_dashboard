@@ -61,7 +61,7 @@ def render():
     metric_row({
         "Total Responden":    f"{len(df):,}",
         "Fitur Input":        "14",
-        "Level Depresi":      "5 (Very Low – Very High)",
+        "Level Depresi":      "5",
         "Missing Values":     int(df.isnull().sum().sum()),
     })
 
