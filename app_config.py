@@ -77,7 +77,7 @@ PROJECTS = {
         "module": "projects._depression_detection.pages",
         "color":  "#4c1d95",
         "dataset":   "smmh_augmented__1_.csv",
-        "algorithm": "MLP (TensorFlow/Keras)",
+        "algorithm": "XGBoost Classifier",
         "accuracy":  "5-class",
         "task":      "Multi-class Classification",
     },
