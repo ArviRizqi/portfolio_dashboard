@@ -78,7 +78,7 @@ PROJECTS = {
         "color":  "#4c1d95",
         "dataset":   "smmh_augmented__1_.csv",
         "algorithm": "XGBoost Classifier",
-        "accuracy":  "5-class",
+        "accuracy":  "~95%",
         "task":      "Multi-class Classification",
     },
 }
